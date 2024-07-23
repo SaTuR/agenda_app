@@ -1,4 +1,4 @@
-from flask import Flask,session,render_template
+from flask import Flask,session,render_template, redirect, url_for,request
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -21,6 +21,12 @@ class Contact(db.Model):
     
 with app.app_context():
     db.create_all()
+    try:
+        obj=User(email='admin@admin.com', password='12345',nombre='Admin')
+        db.session.add(obj)
+        db.session.commit()
+    except:
+        pass
 
 # rutas seguras
 @app.route("/update_contact/<id>")
@@ -38,18 +44,30 @@ def delete_contact(id):
 
 # rutas no seguras
 @app.route("/")
-def hello_world():
+def index():
     return render_template('index.html')
 
-@app.route("/login")
+@app.route("/login",methods=['GET','POST'])
 def login():
-    session.clear()
+    if request.method=='POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        usuario = User.query.filter_by(email=email, password=password).first()
+        print(usuario)
+        if usuario:
+            session['emial']=usuario.email
+            session['nombre']=usuario.nombre
+            return redirect(url_for('index'))
+        else:
+            error = "Usuario o pass incorrecto"
+            return render_template('login.html',error=error)
     return render_template('login.html')
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return "<p>Hello, World!</p>"
+    return redirect(url_for('login'))
+
 
 
 if __name__ == "__main__":
