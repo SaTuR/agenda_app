@@ -44,7 +44,7 @@ def hello_world():
 @app.route("/login")
 def login():
     session.clear()
-    return "<p>Hello, World!</p>"
+    return render_template('login.html')
 
 @app.route("/logout")
 def logout():
